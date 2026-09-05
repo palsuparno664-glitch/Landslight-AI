@@ -1,0 +1,487 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   LANDSIGHT · Cartographic Night-Map design tokens
+   Deep green-ink surfaces · warm ivory-paper · copper/clay + teal accents
+   ========================================================================== */
+:root {
+  /* ink — petroleum-green near-blacks */
+  --ink-950: #0a120f;
+  --ink-900: #0e1915;
+  --ink-850: #12201b;
+  --ink-800: #172821;
+  --ink-700: #20352c;
+  --ink-600: #2a4037;
+  /* paper — warm ivory type */
+  --paper: #e9e7d8;
+  --paper-dim: #a3b0a4;
+  --paper-faint: #6b7a6e;
+  /* accent — earthy survey inks */
+  --clay: #d0784f;
+  --ochre: #d9a441;
+  --teal: #58bca0;
+  --ember: #e0524d;
+  /* semantic risk scale (tuned to palette) */
+  --risk-low: #76b383;
+  --risk-moderate: #d9a441;
+  --risk-high: #d9804b;
+  --risk-critical: #e0524d;
+}
+
+/* ------------------------------------------------------------------
+   Topographic contour tile + survey grid + husk wash (page texture)
+   ------------------------------------------------------------------ */
+body {
+  background-color: var(--ink-950);
+  color: var(--paper);
+  font-family: var(--font-sans, "Space Grotesk", system-ui, sans-serif);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    /* concentric contour wave lines (very faint) */
+    url("data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='240'%20height='240'%3E%3Cg%20fill='none'%20stroke='%2320392f'%20stroke-width='1'%3E%3Cpath%20d='M0%2016%20C%2040%204,%2080%2028,%20120%2016%20S%20200%204,%20240%2016'%20opacity='1'/%3E%3Cpath%20d='M0%2046%20C%2040%2034,%2080%2058,%20120%2046%20S%20200%2034,%20240%2046'%20opacity='.75'/%3E%3Cpath%20d='M0%2076%20C%2040%2064,%2080%2088,%20120%2076%20S%20200%2064,%20240%2076'%20opacity='.55'/%3E%3Cpath%20d='M0%20106%20C%2040%2094,%2080%20118,%20120%20106%20S%20200%2094,%20240%20106'%20opacity='.85'/%3E%3Cpath%20d='M0%20136%20C%2040%20124,%2080%20148,%20120%20136%20S%20200%20124,%20240%20136'%20opacity='.6'/%3E%3Cpath%20d='M0%20166%20C%2040%20154,%2080%20178,%20120%20166%20S%20200%20154,%20240%20166'%20opacity='.45'/%3E%3Cpath%20d='M0%20196%20C%2040%20184,%2080%20208,%20120%20196%20S%20200%20184,%20240%20196'%20opacity='.7'/%3E%3Cpath%20d='M0%20226%20C%2040%20214,%2080%20238,%20120%20226%20S%20200%20214,%20240%20226'%20opacity='.5'/%3E%3C/g%3E%3C/svg%3E"),
+    /* survey-grid dots */
+    radial-gradient(circle at 50% 50%, rgba(163, 176, 164, 0.09) 1px, transparent 1.5px),
+    /* clay cardinal glow washing from the top */
+    radial-gradient(ellipse 70% 42% at 50% -6%, rgba(208, 120, 79, 0.06), transparent 65%);
+  background-size: 240px 240px, 26px 26px, 100% 100%;
+}
+
+::selection {
+  background: rgba(208, 120, 79, 0.38);
+  color: var(--paper);
+}
+
+/* ------------------------------------------------------------------
+   Surveyor's frame — the signature card surface
+   NOTE: kept at top level (not inside @layer components) — this build
+   pipeline drops custom @layer components content. Variants are explicit
+   modifier classes so they can't collide with utilities.
+   ------------------------------------------------------------------ */
+.topo-panel {
+  position: relative;
+  background: rgba(14, 25, 21, 0.94);
+  border: 1px solid var(--ink-700);
+  border-radius: 0.5rem;
+  box-shadow:
+    inset 0 1px 0 rgba(233, 231, 216, 0.04),
+    0 18px 40px -26px rgba(0, 0, 0, 0.8);
+}
+.topo-panel::before,
+.topo-panel::after {
+  content: "";
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  pointer-events: none;
+}
+.topo-panel::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid var(--clay);
+  border-left: 2px solid var(--clay);
+  border-top-left-radius: 0.5rem;
+}
+.topo-panel::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid rgba(208, 120, 79, 0.45);
+  border-right: 2px solid rgba(208, 120, 79, 0.45);
+  border-bottom-right-radius: 0.5rem;
+}
+.topo-panel--quiet {
+  background: rgba(14, 25, 21, 0.9);
+  border: 1px solid var(--ink-700);
+  border-radius: 0.5rem;
+  box-shadow: inset 0 1px 0 rgba(233, 231, 216, 0.03);
+}
+.topo-panel--quiet::before,
+.topo-panel--quiet::after {
+  content: "";
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  pointer-events: none;
+}
+.topo-panel--quiet::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid rgba(208, 120, 79, 0.35);
+  border-left: 2px solid rgba(208, 120, 79, 0.35);
+  border-top-left-radius: 0.5rem;
+}
+.topo-panel--quiet::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid rgba(208, 120, 79, 0.25);
+  border-right: 2px solid rgba(208, 120, 79, 0.25);
+  border-bottom-right-radius: 0.5rem;
+}
+
+/* mono field tag with a surveyor's tick */
+.field-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--ink-700);
+  background: rgba(23, 40, 33, 0.55);
+  color: var(--paper-dim);
+  border-radius: 0.25rem;
+  white-space: nowrap;
+}
+.field-tag::before {
+  content: "";
+  width: 2px;
+  height: 0.7rem;
+  background: currentColor;
+  opacity: 0.6;
+  flex: none;
+}
+.field-tag--clay {
+  color: var(--clay);
+  border-color: rgba(208, 120, 79, 0.45);
+}
+.field-tag--teal {
+  color: var(--teal);
+  border-color: rgba(88, 188, 160, 0.35);
+}
+.field-tag--ember {
+  color: var(--ember);
+  border-color: rgba(224, 82, 77, 0.45);
+}
+.field-tag--solid {
+  background: rgba(208, 120, 79, 0.16);
+  color: var(--clay);
+  border-color: rgba(208, 120, 79, 0.5);
+}
+
+/* ink form fields */
+.topo-input {
+  width: 100%;
+  background: rgba(10, 18, 15, 0.6);
+  border: 1px solid var(--ink-700);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.8125rem;
+  color: var(--paper);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.topo-input:focus {
+  outline: none;
+  border-color: var(--clay);
+  box-shadow: 0 0 0 3px rgba(208, 120, 79, 0.14);
+}
+.topo-input::placeholder {
+  color: var(--paper-faint);
+}
+select.topo-input {
+  color-scheme: dark;
+}
+
+/* horizontal contour-wave separator */
+.contour-band {
+  height: 18px;
+  width: 100%;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='360'%20height='18'%3E%3Cg%20fill='none'%3E%3Cpath%20d='M0%207%20C%2060%202,%20120%2012,%20180%207%20S%20300%202,%20360%207'%20stroke='%23d0784f'%20stroke-width='1'%20opacity='.8'/%3E%3Cpath%20d='M0%2013%20C%2060%2010,%20120%2016,%20180%2013%20S%20300%2010,%20360%2013'%20stroke='%2358bca0'%20stroke-width='1'%20opacity='.4'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 360px 18px;
+  background-repeat: repeat-x;
+  opacity: 0.75;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  pointer-events: none;
+}
+.contour-band--tall {
+  height: 28px;
+  background-size: 360px 28px;
+  opacity: 0.9;
+}
+.contour-band--faint {
+  opacity: 0.45;
+}
+
+/* ------------------------------------------------------------------
+   Leaflet — cartographic night restyle
+   ------------------------------------------------------------------ */
+.dark-tiles .leaflet-tile {
+  /* green-ink hue on the Dark GIS webmap */
+  filter: brightness(0.62) invert(0.92) contrast(1.7) hue-rotate(152deg) saturate(0.45) brightness(0.74);
+}
+
+.leaflet-container {
+  background-color: var(--ink-950) !important;
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+
+/* Prevent Tailwind "img { max-width: 100% }" from breaking Leaflet tile layout.
+   Without this, tiles can collapse or show black gaps. */
+.leaflet-container img {
+  max-width: none !important;
+  max-height: none !important;
+}
+
+/* Ensure tile pane doesn't inherit filters or transforms from parent elements */
+.leaflet-tile-pane {
+  will-change: transform;
+}
+
+/* Keep Leaflet panes in correct stacking order */
+.leaflet-overlay-pane {
+  z-index: 400 !important;
+}
+
+/* Risk polygon glow effect for critical zones */
+.risk-polygon--critical {
+  filter: drop-shadow(0 0 6px rgba(224, 82, 77, 0.4));
+}
+.risk-polygon--high {
+  filter: drop-shadow(0 0 4px rgba(217, 128, 75, 0.3));
+}
+
+.leaflet-popup-content-wrapper {
+  background: rgba(14, 25, 21, 0.97) !important;
+  color: var(--paper) !important;
+  border: 1px solid var(--ink-600) !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 22px 44px -18px rgba(0, 0, 0, 0.85) !important;
+  padding: 0 !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.5;
+}
+
+.leaflet-popup-tip {
+  background: var(--ink-900) !important;
+  border: 1px solid var(--ink-600) !important;
+}
+
+.leaflet-tooltip {
+  background: var(--ink-900) !important;
+  border: 1px solid var(--ink-600) !important;
+  color: var(--paper) !important;
+  border-radius: 0.375rem !important;
+  box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.8) !important;
+}
+
+.leaflet-tooltip-arrow::before {
+  border-top-color: var(--ink-900) !important;
+}
+
+.leaflet-bar {
+  border: 1px solid var(--ink-700) !important;
+  border-radius: 0.375rem !important;
+  box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.8) !important;
+}
+
+.leaflet-bar a {
+  background: var(--ink-900) !important;
+  color: var(--paper-dim) !important;
+  border-bottom: 1px solid var(--ink-700) !important;
+}
+
+.leaflet-bar a:hover {
+  background: var(--ink-800) !important;
+  color: var(--paper) !important;
+}
+
+/* ------------------------------------------------------------------
+   Custom animated radar pulse
+   ------------------------------------------------------------------ */
+@keyframes radar-ping {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+.animate-radar-pulse {
+  animation: radar-ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* ------------------------------------------------------------------
+   Custom scrollbars
+   ------------------------------------------------------------------ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ink-950);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ink-700);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-600);
+}
+
+/* ------------------------------------------------------------------
+   Instruments & gauges — dashboard tiles (added Phase C)
+   ------------------------------------------------------------------ */
+/* small glyph well for instrument tiles */
+.instrument-glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border: 1px solid var(--ink-600);
+  border-radius: 0.375rem;
+  background: rgba(23, 40, 33, 0.5);
+  box-shadow: inset 0 0 0 1px rgba(233, 231, 216, 0.03);
+}
+
+/* slimmer contour strip — tile underline */
+.contour-band--thin {
+  height: 7px;
+  background-size: 360px 7px;
+  opacity: 0.5;
+}
+
+/* risk-tinted survey frames (defined after base so they win) */
+.topo-panel--critical {
+  border-color: rgba(224, 82, 77, 0.5);
+}
+.topo-panel--critical::before {
+  border-top-color: var(--ember);
+  border-left-color: var(--ember);
+}
+.topo-panel--critical::after {
+  border-bottom-color: rgba(224, 82, 77, 0.6);
+  border-right-color: rgba(224, 82, 77, 0.6);
+}
+.topo-panel--high {
+  border-color: rgba(217, 128, 75, 0.42);
+}
+.topo-panel--high::before {
+  border-top-color: var(--clay);
+  border-left-color: var(--clay);
+}
+.topo-panel--high::after {
+  border-bottom-color: rgba(208, 120, 79, 0.55);
+  border-right-color: rgba(208, 120, 79, 0.55);
+}
+.topo-panel--moderate {
+  border-color: rgba(217, 164, 65, 0.35);
+}
+.topo-panel--moderate::before {
+  border-top-color: var(--ochre);
+  border-left-color: var(--ochre);
+}
+.topo-panel--moderate::after {
+  border-bottom-color: rgba(217, 164, 65, 0.45);
+  border-right-color: rgba(217, 164, 65, 0.45);
+}
+
+/* ochre risk field-tag */
+.field-tag--ochre {
+  color: var(--ochre);
+  border-color: rgba(217, 164, 65, 0.4);
+}
+
+/* surveyor's ruler — tick-marked risk gauge */
+.contour-gauge {
+  position: relative;
+  height: 16px;
+  margin-top: 0.4rem;
+  border: 1px solid var(--ink-600);
+  border-radius: 2px;
+  background-color: rgba(23, 40, 33, 0.4);
+  background-image:
+    repeating-linear-gradient(90deg, rgba(163, 176, 164, 0.2) 0 1px, transparent 1px 12.5%),
+    repeating-linear-gradient(90deg, rgba(163, 176, 164, 0.42) 0 1px, transparent 1px 50%);
+  overflow: hidden;
+}
+.contour-gauge__fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+}
+.contour-gauge__marker {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  margin-left: -1px;
+}
+.contour-gauge__marker::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  background-color: inherit;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+/* surveyor's square checkbox — map layer switcher */
+.topo-check {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 13px;
+  height: 13px;
+  flex: none;
+  position: relative;
+  border: 1px solid var(--ink-600);
+  border-radius: 2px;
+  background: rgba(10, 18, 15, 0.6);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.topo-check:hover {
+  border-color: var(--ink-800);
+  background: rgba(23, 40, 33, 0.7);
+}
+.topo-check:checked {
+  border-color: var(--clay);
+  background: rgba(208, 120, 79, 0.16);
+}
+.topo-check:checked::after {
+  content: "";
+  position: absolute;
+  top: 1.5px;
+  left: 4px;
+  width: 3px;
+  height: 7px;
+  border: solid var(--clay);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.topo-check:focus-visible {
+  outline: 2px solid rgba(208, 120, 79, 0.4);
+  outline-offset: 1px;
+}

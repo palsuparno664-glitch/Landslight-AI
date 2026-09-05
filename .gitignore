@@ -1,0 +1,30 @@
+# --- Node / Next.js ---
+node_modules/
+.next/
+out/
+build/
+*.tsbuildinfo
+npm-debug.log*
+
+# --- Python / FastAPI backend ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# --- Environment & secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Generated / tool-specific ---
+repomix-output.xml
+frontend/shot/
+frontend/.tmp-map.png
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
