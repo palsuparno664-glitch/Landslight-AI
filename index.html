@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LANDSIGHT AI · Landslide Early-Warning Platform</title>
+<meta name="description" content="LANDSIGHT AI — AI early-warning and landslide-risk monitoring for the North Eastern states of India. Static project showcase. Run the full app locally for the live interactive demo." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='1' y='1' width='38' height='38' rx='9' fill='%230a120f' stroke='%232a4037'/%3E%3Ccircle cx='20' cy='20' r='11' fill='none' stroke='%23d0784f' stroke-width='2'/%3E%3Ccircle cx='20' cy='20' r='5' fill='%23d0784f'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800;9..144,900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ==================================================================
+     LANDSIGHT · Cartographic Night-Map — static showcase (single-file)
+     Tokens mirrored from frontend/src/app/globals.css
+     ================================================================== */
+  :root {
+    --ink-950:#0a120f; --ink-900:#0e1915; --ink-850:#12201b;
+    --ink-800:#172821; --ink-700:#20352c; --ink-600:#2a4037;
+    --paper:#e9e7d8; --paper-dim:#a3b0a4; --paper-faint:#6b7a6e;
+    --clay:#d0784f; --ochre:#d9a441; --teal:#58bca0; --ember:#e0524d;
+    --risk-low:#76b383; --risk-moderate:#d9a441; --risk-high:#d9804b; --risk-critical:#e0524d;
+    --font-display:"Fraunces", Georgia, serif;
+    --font-sans:"Space Grotesk", system-ui, sans-serif;
+    --font-mono:"JetBrains Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background-color: var(--ink-950);
+    color: var(--paper);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+  body::before {
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background-image:
+      url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cg fill='none' stroke='%2320392f' stroke-width='1'%3E%3Cpath d='M0 16 C 40 4, 80 28, 120 16 S 200 4, 240 16' opacity='1'/%3E%3Cpath d='M0 46 C 40 34, 80 58, 120 46 S 200 34, 240 46' opacity='.75'/%3E%3Cpath d='M0 76 C 40 64, 80 88, 120 76 S 200 64, 240 76' opacity='.55'/%3E%3Cpath d='M0 106 C 40 94, 80 118, 120 106 S 200 94, 240 106' opacity='.85'/%3E%3Cpath d='M0 136 C 40 124, 80 148, 120 136 S 200 124, 240 136' opacity='.6'/%3E%3Cpath d='M0 166 C 40 154, 80 178, 120 166 S 200 154, 240 166' opacity='.45'/%3E%3Cpath d='M0 196 C 40 184, 80 208, 120 196 S 200 184, 240 196' opacity='.7'/%3E%3Cpath d='M0 226 C 40 214, 80 238, 120 226 S 200 214, 240 226' opacity='.5'/%3E%3C/g%3E%3C/svg%3E"),
+      radial-gradient(circle at 50% 50%, rgba(163,176,164,0.09) 1px, transparent 1.5px),
+      radial-gradient(ellipse 70% 42% at 50% -6%, rgba(208,120,79,0.07), transparent 65%);
+    background-size: 240px 240px, 26px 26px, 100% 100%;
+  }
+  ::selection { background: rgba(208,120,79,.38); color: var(--paper); }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 22px; }
+
+  /* header band */
+  header { border-bottom: 1px solid var(--ink-800); background: rgba(10,18,15,.6); backdrop-filter: blur(6px); position: sticky; top: 0; z-index: 20; }
+  .ticker {
+    border-bottom: 1px solid var(--ink-800); background: rgba(18,32,27,.6);
+    padding: 7px 16px; font-family: var(--font-mono); font-size: 11px;
+    display: flex; align-items: center; gap: 10px; overflow: hidden; white-space: nowrap;
+  }
+  .ticker .badge { display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border:1px solid rgba(224,82,77,.5); background:rgba(224,82,77,.14); color:var(--ember); font-weight:700; letter-spacing:.12em; flex:none; }
+  .ticker .tag { color: var(--ochre); font-weight:700; flex: none; }
+  .ticker .msg { color: var(--paper-dim); overflow:hidden; text-overflow:ellipsis; }
+  .nav { max-width:1080px; margin:0 auto; padding:12px 22px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .brand { display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--paper); }
+  .brand .word { font-family: var(--font-display); font-weight:900; font-size:20px; letter-spacing:-.02em; }
+  .brand .word b { color: var(--clay); }
+  .brand .tag { font-family:var(--font-mono); font-size:10px; letter-spacing:.12em; color:var(--clay); border:1px solid rgba(208,120,79,.45); padding:2px 7px; border-radius:4px; }
+  .nav .links a { font-family:var(--font-mono); font-size:12px; color:var(--paper-dim); text-decoration:none; margin-left:18px; letter-spacing:.04em; }
+  .nav .links a:hover { color: var(--clay); }
+
+  /* survey frame card */
+  .panel { position:relative; background:rgba(14,25,21,.94); border:1px solid var(--ink-700); border-radius:10px; box-shadow: inset 0 1px 0 rgba(233,231,216,.04), 0 18px 40px -26px rgba(0,0,0,.8); }
+  .panel::before, .panel::after { content:""; position:absolute; width:11px; height:11px; }
+  .panel::before { top:-1px; left:-1px; border-top:2px solid var(--clay); border-left:2px solid var(--clay); border-top-left-radius:10px; }
+  .panel::after { bottom:-1px; right:-1px; border-bottom:2px solid rgba(208,120,79,.45); border-right:2px solid rgba(208,120,79,.45); border-bottom-right-radius:10px; }
+
+  .field-tag { display:inline-flex; align-items:center; gap:.4rem; font-family:var(--font-mono); font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; line-height:1.4; padding:.2rem .55rem; border:1px solid var(--ink-700); background:rgba(23,40,33,.55); color:var(--paper-dim); border-radius:4px; white-space:nowrap; }
+  .field-tag::before { content:""; width:2px; height:.75rem; background:currentColor; opacity:.6; flex:none; }
+  .field-tag--clay { color:var(--clay); border-color:rgba(208,120,79,.45); }
+  .field-tag--teal { color:var(--teal); border-color:rgba(88,188,160,.35); }
+  .field-tag--ember { color:var(--ember); border-color:rgba(224,82,77,.45); }
+  .field-tag--ochre { color:var(--ochre); border-color:rgba(217,164,65,.4); }
+
+  .contour-band { height:16px; width:100%; background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='18'%3E%3Cg fill='none'%3E%3Cpath d='M0 7 C 60 2, 120 12, 180 7 S 300 2, 360 7' stroke='%23d0784f' stroke-width='1' opacity='.8'/%3E%3Cpath d='M0 13 C 60 10, 120 16, 180 13 S 300 10, 360 13' stroke='%2358bca0' stroke-width='1' opacity='.4'/%3E%3C/g%3E%3C/svg%3E"); background-size:360px 18px; background-repeat:repeat-x; opacity:.5; -webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent); mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent); }
+
+  section { padding: 64px 0; }
+  .eyebrow { font-family:var(--font-mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--clay); font-weight:700; display:flex; align-items:center; gap:10px; }
+  .eyebrow::before { content:""; width:34px; height:1px; background:var(--clay); opacity:.6; }
+  h1, h2 { font-family: var(--font-display); font-weight:800; line-height:1.1; letter-spacing:-.015em; }
+  h1 { font-size: clamp(34px, 6vw, 60px); margin: 18px 0 20px; }
+  h1 .accent { color: var(--clay); }
+  h2 { font-size: clamp(26px, 4vw, 38px); margin: 14px 0 8px; }
+  .lead { font-size: 17px; color: var(--paper-dim); max-width: 640px; }
+  .hero-grid { display:grid; grid-template-columns: 1.3fr 1fr; gap:26px; align-items:center; }
+  .hero-stats { display:grid; grid-template-columns: repeat(2, 1fr); gap:14px; }
+  .stat { padding:16px 18px; }
+  .stat .n { font-family:var(--font-display); font-weight:900; font-size:26px; color:var(--clay); }
+  .stat .l { font-family:var(--font-mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--paper-faint); margin-top:2px; }
+  .badge-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:24px; }
+
+  .grid-3 { display:grid; grid-template-columns: repeat(3, 1fr); gap:18px; }
+  .feat { padding: 22px; }
+  .feat .ico { font-size:20px; }
+  .feat h3 { font-family:var(--font-mono); font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--teal); margin:12px 0 6px; }
+  .feat p { font-size:14px; color:var(--paper-dim); margin:0; }
+
+  .alerts { display:grid; gap:14px; }
+  .alert { display:flex; align-items:center; gap:14px; padding:14px 18px; }
+  .alert .risk { font-family:var(--font-mono); font-weight:700; font-size:11px; letter-spacing:.1em; padding:4px 9px; border-radius:4px; flex:none; }
+  .alert .risk.critical { color:var(--ember); background:rgba(224,82,77,.14); border:1px solid rgba(224,82,77,.5); }
+  .alert .risk.high { color:var(--risk-high); background:rgba(217,128,75,.12); border:1px solid rgba(217,128,75,.4); }
+  .alert .meta { font-family:var(--font-mono); font-size:11px; color:var(--paper-faint); letter-spacing:.06em; }
+  .alert .title { color:var(--paper); font-weight:600; font-size:15px; }
+  .alert .title.crit { color:var(--ember); }
+  .gauge { margin-left:auto; width:120px; flex:none; }
+  .gauge .track { position:relative; height:8px; border:1px solid var(--ink-600); border-radius:2px; background:rgba(23,40,33,.4); overflow:hidden; }
+  .gauge .fill { position:absolute; top:0; bottom:0; left:0; }
+  .gauge .num { font-family:var(--font-mono); font-size:11px; color:var(--paper-dim); text-align:right; margin-top:3px; }
+
+  /* how it works */
+  .steps { display:grid; grid-template-columns: repeat(4,1fr); gap:14px; }
+  .step { padding:18px; }
+  .step .k { font-family:var(--font-display); font-weight:900; font-size:22px; color:var(--clay); }
+  .step h4 { font-family:var(--font-mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--teal); margin:8px 0 4px; }
+  .step p { font-size:13px; color:var(--paper-dim); margin:0; }
+
+  /* run locally */
+  pre.code { background: rgba(10,18,15,.7); border:1px solid var(--ink-700); border-radius:8px; padding:18px; font-family:var(--font-mono); font-size:13px; color:var(--paper-dim); overflow-x:auto; line-height:1.7; }
+  pre.code .c { color: var(--paper-faint); }
+  pre.code .k { color: var(--teal); }
+  .cred { font-family:var(--font-mono); font-size:13px; color:var(--paper-dim); }
+  .cred b { color: var(--ochre); }
+
+  .two { display:grid; grid-template-columns: 1fr 1fr; gap:18px; }
+  .note { font-size:13px; color:var(--paper-faint); border:1px dashed var(--ink-700); border-radius:8px; padding:14px 16px; margin-top:16px; }
+  .note b { color: var(--ochre); }
+
+  footer { border-top:1px solid var(--ink-800); padding:30px 0 44px; color:var(--paper-faint); font-size:13px; }
+  footer .flex { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  footer .mono { font-family:var(--font-mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--paper-dim); }
+
+  @media (max-width: 860px) {
+    .hero-grid, .two { grid-template-columns: 1fr; }
+    .grid-3, .steps { grid-template-columns: 1fr 1fr; }
+    .gauge { display:none; }
+  }
+  @media (max-width: 560px) {
+    .grid-3, .steps { grid-template-columns: 1fr; }
+    .nav .links { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="ticker">
+    <span class="badge">Live Field Warning</span>
+    <span class="tag" id="tickTag">SIKKIM</span>
+    <span class="msg" id="tickMsg">CRITICAL RED ALERT: Mangan – Chungthang Highway (Risk 86.4/100) — Mandatory Evacuation Zone 4</span>
+  </div>
+  <div class="nav">
+    <a class="brand" href="#top">
+      <!-- concentric-contours logo mark -->
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+        <rect x="0.5" y="0.5" width="39" height="39" rx="9" fill="#0a120f" stroke="#2a4037"/>
+        <circle cx="20" cy="20" r="13" fill="none" stroke="#58bca0" stroke-opacity="0.28" stroke-width="0.9"/>
+        <circle cx="20" cy="20" r="9.5" fill="none" stroke="#d0784f" stroke-opacity="0.4" stroke-width="0.9"/>
+        <circle cx="20" cy="20" r="6" fill="none" stroke="#58bca0" stroke-opacity="0.5" stroke-width="0.9"/>
+        <circle cx="20" cy="20" r="2.4" fill="#d0784f"/>
+        <path d="M20 27.5 L20.9 25.6 L20 26 L19.1 25.6 Z" fill="#e9e7d8" opacity="0.7"/>
+      </svg>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span class="word">LANDSIGHT <b>AI</b></span>
+        <span class="tag">NER INDIA</span>
+      </div>
+    </a>
+    <div class="links">
+      <a href="#platform">Platform</a>
+      <a href="#alerts">Live Risk</a>
+      <a href="#how">How It Works</a>
+      <a href="#run">Run Locally</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap" id="top" style="padding-top:56px">
+  <!-- HERO -->
+  <section style="padding-top:8px">
+    <div class="hero-grid">
+      <div>
+        <span class="eyebrow">AI Early Warning &amp; Landslide Monitoring</span>
+        <h1>Helping the hills<br/>talk <span class="accent">before</span> they move.</h1>
+        <p class="lead">
+          LANDSIGHT AI fuses satellite terrain, live IMD rainfall and a field IoT mesh to
+          score landslide risk across the North Eastern states of India — and push an
+          early warning to the people who need it, seconds before the slope gives way.
+        </p>
+        <div class="badge-row">
+          <span class="field-tag field-tag--clay">8 NE States Covered</span>
+          <span class="field-tag field-tag--teal">XGBoost ML · 9ms</span>
+          <span class="field-tag field-tag--ember">34/34 IoT Nodes</span>
+          <span class="field-tag field-tag--ochre">IMD Radar Active</span>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="panel stat"><div class="n">8</div><div class="l">States Monitored</div></div>
+        <div class="panel stat"><div class="n">86.4</div><div class="l">Top Risk Score /100</div></div>
+        <div class="panel stat"><div class="n">34</div><div class="l">Field IoT Nodes</div></div>
+        <div class="panel stat"><div class="n">2.4M</div><div class="l">DEM Points Fused</div></div>
+      </div>
+    </div>
+    <div class="contour-band" style="margin-top:44px"></div>
+  </section>
+
+  <!-- COVERAGE -->
+  <section id="platform">
+    <span class="eyebrow">Coverage</span>
+    <h2>The North Eastern arc</h2>
+    <p class="lead">From the Sikkim Himalaya to the Meghalaya escarpments and the Assam rail corridor — the region's most landslide-prone terrain, mapped district by district.</p>
+    <div class="badge-row" style="margin-top:20px">
+      <span class="field-tag field-tag--clay">Sikkim</span>
+      <span class="field-tag field-tag--clay">Assam</span>
+      <span class="field-tag field-tag--clay">Meghalaya</span>
+      <span class="field-tag field-tag--clay">Arunachal Pradesh</span>
+      <span class="field-tag field-tag--clay">Nagaland</span>
+      <span class="field-tag field-tag--clay">Manipur</span>
+      <span class="field-tag field-tag--clay">Mizoram</span>
+      <span class="field-tag field-tag--clay">Tripura</span>
+    </div>
+  </section>
+
+  <!-- PLATFORM FEATURES -->
+  <section id="platform">
+    <span class="eyebrow">Platform</span>
+    <h2>Four instruments, one early-warning net</h2>
+    <div class="grid-3">
+      <div class="panel feat">
+        <div class="ico">📡</div>
+        <h3>Field IoT Mesh</h3>
+        <p>34 tilt &amp; moisture nodes streaming slope displacement in near real-time across the monitoring districts.</p>
+      </div>
+      <div class="panel feat">
+        <div class="ico">🧠</div>
+        <h3>XGBoost Inference</h3>
+        <p>Gradient-boosted risk model scoring DEM, rainfall and sensor features in ~9ms per zone.</p>
+      </div>
+      <div class="panel feat">
+        <div class="ico">🌧️</div>
+        <h3>IMD Radar Feed</h3>
+        <p>Live cloudburst rainfall with 185mm extreme-event detection — the trigger behind red-alert escalation.</p>
+      </div>
+      <div class="panel feat">
+        <div class="ico">🗺️</div>
+        <h3>Bhuvan GIS Sync</h3>
+        <p>ISRO terrain layers fused with our cartographic night-map for crisp, readable risk polygons.</p>
+      </div>
+      <div class="panel feat">
+        <div class="ico">📴</div>
+        <h3>Offline-First</h3>
+        <p>Field officers report slides from zero-coverage valleys; reports queue and sync the moment a signal returns.</p>
+      </div>
+      <div class="panel feat">
+        <div class="ico">🚨</div>
+        <h3>Role-Gated Console</h3>
+        <p>Citizens file reports; officers reach the <span style="font-family:var(--font-mono);color:var(--teal)">/dispatch</span> authority console. Every role verified at login.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE RISK -->
+  <section id="alerts">
+    <span class="eyebrow">Live Field Risk</span>
+    <h2>Current risk board</h2>
+    <div class="alerts">
+      <div class="panel alert">
+        <span class="risk critical">CRITICAL</span>
+        <div>
+          <div class="title crit">Mangan – Chungthang Highway</div>
+          <div class="meta">SIKKIM · Chungthang Rd · Mandatory Evacuation Zone 4</div>
+        </div>
+        <div class="gauge">
+          <div class="track"><div class="fill" style="width:86.4%;background:var(--risk-critical)"></div></div>
+          <div class="num">86.4 / 100</div>
+        </div>
+      </div>
+      <div class="panel alert">
+        <span class="risk critical">CRITICAL</span>
+        <div>
+          <div class="title crit">Sohra Cherrapunji Escarpment</div>
+          <div class="meta">MEGHALAYA · East Khasi Hills · 185mm Extreme Cloudburst</div>
+        </div>
+        <div class="gauge">
+          <div class="track"><div class="fill" style="width:93.2%;background:var(--risk-critical)"></div></div>
+          <div class="num">93.2 / 100</div>
+        </div>
+      </div>
+      <div class="panel alert">
+        <span class="risk high">HIGH</span>
+        <div>
+          <div class="title">Dima Hasao Railway Section</div>
+          <div class="meta">ASSAM · Lumding – Silchar · Track Speed Limited</div>
+        </div>
+        <div class="gauge">
+          <div class="track"><div class="fill" style="width:67.2%;background:var(--risk-high)"></div></div>
+          <div class="num">67.2 / 100</div>
+        </div>
+      </div>
+      <div class="panel alert">
+        <span class="risk high">HIGH</span>
+        <div>
+          <div class="title">Tawang – Bap Teng Kang Gorge</div>
+          <div class="meta">ARUNACHAL · Tawang · Rockfall Hazard</div>
+        </div>
+        <div class="gauge">
+          <div class="track"><div class="fill" style="width:74.5%;background:var(--risk-high)"></div></div>
+          <div class="num">74.5 / 100</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how">
+    <span class="eyebrow">Pipeline</span>
+    <h2>From sensor to siren</h2>
+    <div class="steps">
+      <div class="panel step"><div class="k">01</div><h4>Sense</h4><p>IoT tilt, moisture &amp; rainfall nodes sample the slope every few seconds.</p></div>
+      <div class="panel step"><div class="k">02</div><h4>Score</h4><p>XGBoost fuses DEM terrain + IMD rainfall + live sensors into a 0–100 risk score.</p></div>
+      <div class="panel step"><div class="k">03</div><h4>Warn</h4><p>Crossing the threshold escalates a red-alert with evacuation zoning.</p></div>
+      <div class="panel step"><div class="k">04</div><h4>Dispatch</h4><p>Officers action the slide from the console; citizens stay informed on the map.</p></div>
+    </div>
+  </section>
+
+  <!-- RUN LOCALLY -->
+  <section id="run">
+    <span class="eyebrow">Run the full app</span>
+    <h2>This page is the static showcase</h2>
+    <p class="lead">
+      The interactive platform — live maps, the login gate, and the <span style="font-family:var(--font-mono)">/dispatch</span>
+      console — needs the FastAPI backend and Next.js server. They can't run on GitHub Pages, so run them locally:
+    </p>
+    <div class="two" style="margin-top:22px">
+      <div>
+        <pre class="code"><span class="c"># terminal 1 — backend</span>
+<span class="k">python</span> -m uvicorn backend.main:app --port 8000
+
+<span class="c"># terminal 2 — frontend</span>
+<span class="k">cd</span> frontend &amp;&amp; npm install
+<span class="k">npm</span> run dev   <span class="c"># → http://localhost:3000</span></pre>
+      </div>
+      <div>
+        <pre class="code"><span class="c"># demo Field Officer login</span>
+officer ID   : <span class="k">OFF-SKM-001</span>
+district     : <span class="k">Mangan</span>  <span class="c">(Sikkim)</span>
+access code  : <span class="k">SKM482</span>
+
+<span class="c"># citizens log in with just</span>
+<span class="c"># their full name + home state</span></pre>
+      </div>
+    </div>
+    <div class="note">
+      <b>Note:</b> visiting the repo root on GitHub Pages shows this static page only.
+      Open the live app at <span style="font-family:var(--font-mono)">localhost:3000</span> for the full experience —
+      including the role-gated hard gate, the risk map, and the dispatch console.
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap flex">
+    <div class="mono">LANDSIGHT AI · NER India</div>
+    <div>An independent build — conceived, engineered &amp; shipped by me.</div>
+  </div>
+</footer>
+
+<script>
+  /* Live alert ticker — cycles the real field warnings */
+  const ALERTS = [
+    { tag:'SIKKIM', msg:'CRITICAL RED ALERT: Mangan – Chungthang Highway (Risk 86.4/100) — Mandatory Evacuation Zone 4' },
+    { tag:'MEGHALAYA', msg:'CRITICAL RED ALERT: Sohra Cherrapunji Escarpment (Risk 93.2/100) — 185mm Extreme Cloudburst' },
+    { tag:'ASSAM', msg:'HIGH RISK ADVISORY: Dima Hasao Railway Section (Risk 67.2/100) — Track Speed Limited' },
+    { tag:'ARUNACHAL', msg:'HIGH RISK ADVISORY: Tawang – Bap Teng Kang Gorge (Risk 74.5/100) — Rockfall Hazard' },
+  ];
+  let i = 0;
+  setInterval(() => {
+    i = (i + 1) % ALERTS.length;
+    document.getElementById('tickTag').textContent = ALERTS[i].tag;
+    document.getElementById('tickMsg').textContent = ALERTS[i].msg;
+  }, 6000);
+</script>
+
+</body>
+</html>
