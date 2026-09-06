@@ -11,7 +11,6 @@ import {
   BarChart3,
   BookOpen,
   PhoneCall,
-  Sparkles,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -106,28 +105,6 @@ export default function Sidebar() {
           </nav>
         </div>
 
-        {/* Mission Info Card */}
-        <div className="topo-panel topo-panel--quiet p-3.5 text-xs">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="w-4 h-4 text-clay" />
-            <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-clay">
-              Mission Profile
-            </span>
-          </div>
-          <p className="text-[11px] text-paper-dim mb-2 leading-relaxed">
-            <strong className="text-paper">Team:</strong> Storm Chasers<br />
-            <strong className="text-paper">Theme:</strong> Disaster Management
-          </p>
-          <div className="pt-2 border-t border-ink-700 flex items-center justify-between text-[10px] font-mono text-paper-faint">
-            <span>NER 8 States</span>
-            <span className="text-teal inline-flex items-center gap-1">
-              <span className="w-1 h-1 rounded-full bg-teal" />
-              100% Calibrated
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* Emergency Control Hotlines Card */}
       <div className="rounded-lg bg-ink-900/70 border border-ember/25 p-3.5 space-y-2">
         <div className="flex items-center gap-2 text-ember text-xs font-bold font-mono uppercase tracking-widest">
@@ -154,6 +131,7 @@ export default function Sidebar() {
             </span>
           </div>
         </div>
+      </div>
       </div>
     </aside>
   );
