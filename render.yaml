@@ -1,0 +1,26 @@
+# ====================================================================
+# LANDSIGHT AI — Render Blueprint (FastAPI backend)
+#
+# How to deploy:
+#   1. On Render: New → Blueprint → connect this GitHub repo.
+#   2. When asked for LANDSIGHT_AUTH_SECRET, paste the SAME value you
+#      set on Vercel (the shared HMAC secret for session cookies).
+#   3. Render creates the web service and exposes it at a public URL:
+#      https://landsight-backend.onrender.com
+#
+# Then point Vercel's BACKEND_URL at that URL. Done.
+# ====================================================================
+services:
+  - type: web
+    name: landsight-backend
+    runtime: python
+    plan: free
+    region: singapore
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    numInstances: 1
+    envVars:
+      - key: LANDSIGHT_AUTH_SECRET
+        sync: false

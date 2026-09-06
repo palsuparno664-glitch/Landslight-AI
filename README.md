@@ -79,3 +79,44 @@ FastAPI interactive docs will be live at **http://localhost:8000/docs**.
 ```bash
 python -m backend.tests.test_risk_model
 ```
+
+---
+
+## 🌐 Run It From Anywhere — Hosted Deployment
+
+The frontend (Next.js) and backend (FastAPI) are two separate services, so the live site is two hosts. `render.yaml` and `vercel.json` at the repo root are already wired for this.
+
+### Render — FastAPI backend (free)
+
+1. Render dashboard → **New → Blueprint** → connect this GitHub repo.
+2. When prompted for `LANDSIGHT_AUTH_SECRET`, paste the shared secret from below (must match Vercel).
+3. Deploy. Your backend lives at `https://landsight-backend.onrender.com` (defined in `render.yaml`).
+
+### Vercel — Next.js frontend (free)
+
+1. [vercel.com/new](https://vercel.com/new) → import this repo.
+2. Framework: **Next.js** (auto-detected). Root Directory: **`frontend`** (already set via `vercel.json`).
+3. Add two Environment Variables:
+   - `BACKEND_URL` → `https://landsight-backend.onrender.com`
+   - `LANDSIGHT_AUTH_SECRET` → the shared secret from below
+4. **Deploy**, then open the `*.vercel.app` URL from any device.
+
+### The shared secret
+
+Session cookies are HMAC-SHA256 signed under `LANDSIGHT_AUTH_SECRET` — **both services must use the exact same value**. Generate one:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Set it on Render *and* Vercel. (The dev default `landsight-dev-2026` works but is not safe for a public site.)
+
+### Demo accounts
+
+- **Field Officer:** `OFF-SKM-001` · district `Mangan` (Sikkim) · access code `SKM482`
+- **Citizen:** any full name + home state
+
+### Honest notes
+
+- Free tiers **sleep after ~15 min idle** — the first visit after a gap can take 30–60s to wake.
+- The backend store is **in-memory**: restarts (or sleep cycles on free tier) reset the mock data. This is a prototype, not durable storage; a VPS/dedicated plan would fix both.
