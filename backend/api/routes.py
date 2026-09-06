@@ -3,11 +3,17 @@ LANDSIGHT AI - FastAPI REST API Router
 Endpoints for ML Risk Scoring, Citizen Reports, GIS Layer Ingestion, and Multilingual Dispatch
 """
 
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Literal
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from datetime import datetime, timezone
+import base64
+import hashlib
+import hmac
+import json
+import os
 import random
+import time
 
 from backend.models.risk_model import (
     LandslideFeatureInput,
@@ -97,6 +103,34 @@ dispatch_logs: List[Dict[str, Any]] = [
     }
 ]
 
+# ----------------------------------------------------------------------
+# Identity & Access — seeded field-officer directory + citizen registry.
+# Prototype stores, mirroring citizen_reports_db / dispatch_logs above.
+# ----------------------------------------------------------------------
+
+# Seeded field-officer roster — one roving responder per NER state.
+# In a production build this would resolve from a directory service, not code.
+FIELD_OFFICERS_DB: List[Dict[str, Any]] = [
+    {"officer_id": "OFF-SKM-001", "name": "Meena Rai", "state": "Sikkim", "district": "Mangan", "department": "SDRF", "security_code": "SKM482"},
+    {"officer_id": "OFF-MEG-002", "name": "Sanjiv Marak", "state": "Meghalaya", "district": "East Khasi Hills", "department": "DEOC", "security_code": "MEG774"},
+    {"officer_id": "OFF-ASM-003", "name": "Alok Sarma", "state": "Assam", "district": "Dima Hasao", "department": "Rail Track Patrol", "security_code": "ASM310"},
+    {"officer_id": "OFF-ARU-004", "name": "Pempa Bhutia", "state": "Arunachal Pradesh", "district": "Tawang", "department": "BRTF", "security_code": "ARU906"},
+    {"officer_id": "OFF-NAG-005", "name": "Kenei Kire", "state": "Nagaland", "district": "Kohima", "department": "SDRF", "security_code": "NAG558"},
+    {"officer_id": "OFF-MIZ-006", "name": "Hmingthana", "state": "Mizoram", "district": "Aizawl", "department": "DEOC", "security_code": "MIZ223"},
+    {"officer_id": "OFF-MAN-007", "name": "Ningthoujam Singh", "state": "Manipur", "district": "Tamenglong", "department": "SDRF", "security_code": "MAN661"},
+    {"officer_id": "OFF-TRI-008", "name": "Basu Debnath", "state": "Tripura", "district": "Jampui Hills", "department": "NDRF", "security_code": "TRI147"},
+]
+
+# Registered citizens (in-memory prototype registry)
+citizen_registry: List[Dict[str, Any]] = []
+_citizen_sequence = 0
+
+
+def _next_citizen_id() -> str:
+    global _citizen_sequence
+    _citizen_sequence += 1
+    return f"CTZ-2026-{_citizen_sequence:03d}"
+
 
 class CitizenReportCreate(BaseModel):
     latitude: float = Field(..., ge=-90, le=90)
@@ -139,6 +173,120 @@ class AskResponse(BaseModel):
     sources: List[Dict[str, Any]]
     suggested_questions: List[str]
     timestamp: str
+
+
+# ----------------------------------------------------------------------
+# Identity & Access — signed session tokens + the /auth/login endpoint.
+# Secret is read from env; default is a dev-only value (override in prod).
+# ----------------------------------------------------------------------
+
+AUTH_SECRET = os.getenv("LANDSIGHT_AUTH_SECRET", "landsight-dev-2026")
+SESSION_TTL_SECONDS = 12 * 60 * 60
+
+
+def _b64url_encode(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
+
+
+def _b64url_decode(data: str) -> bytes:
+    padding = "=" * (-len(data) % 4)
+    return base64.urlsafe_b64decode(data + padding)
+
+
+def _sign_session_token(profile: Dict[str, Any], role: str, ttl: int = SESSION_TTL_SECONDS) -> str:
+    """Signs an opaque, verifiable session token: base64url(payload).hmac_sha256_hex."""
+    now = int(time.time())
+    payload = {
+        "role": role,
+        "sub": profile.get("id") or profile.get("officer_id", ""),
+        "name": profile.get("name", ""),
+        "state": profile.get("state", ""),
+        "district": profile.get("district"),
+        "department": profile.get("department"),
+        "iat": now,
+        "exp": now + ttl,
+    }
+    body = _b64url_encode(json.dumps(payload, separators=(",", ":")).encode("utf-8"))
+    signature = hmac.new(AUTH_SECRET.encode("utf-8"), body.encode("ascii"), hashlib.sha256).hexdigest()
+    return f"{body}.{signature}"
+
+
+def _verify_session_token(token: str) -> Optional[Dict[str, Any]]:
+    """Returns the payload dict if the signature is valid and unexpired, else None."""
+    try:
+        body, signature = token.split(".", 1)
+        expected = hmac.new(AUTH_SECRET.encode("utf-8"), body.encode("ascii"), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(signature, expected):
+            return None
+        payload = json.loads(_b64url_decode(body))
+        if int(payload.get("exp", 0)) < int(time.time()):
+            return None
+        return payload
+    except Exception:
+        return None
+
+
+class AuthLoginRequest(BaseModel):
+    role: Literal["citizen", "officer"]
+    # Officer credentials
+    officer_id: Optional[str] = None
+    district: Optional[str] = None
+    security_code: Optional[str] = None
+    # Citizen identity
+    full_name: Optional[str] = None
+    home_state: Optional[str] = None
+
+
+class AuthLoginResponse(BaseModel):
+    status: str
+    role: Literal["citizen", "officer"]
+    user: Dict[str, Any]
+    token: str
+
+
+@router.post("/auth/login", response_model=AuthLoginResponse)
+def login_user(payload: AuthLoginRequest):
+    """
+    Verifies the visitor's identity as either a Citizen (name + home state) or a
+    Field Officer (officer ID + district + access code) and returns a signed
+    session token bound to that role.
+    """
+    if payload.role == "officer":
+        officer = next(
+            (
+                o for o in FIELD_OFFICERS_DB
+                if o["officer_id"] == payload.officer_id
+                and o["district"].strip().lower() == (payload.district or "").strip().lower()
+                and hmac.compare_digest(o["security_code"], (payload.security_code or "").strip().upper())
+            ),
+            None,
+        )
+        if officer is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid officer credentials. Check the officer ID, district, and access code.",
+            )
+        profile = dict(officer)
+        profile["id"] = officer["officer_id"]
+        profile.pop("security_code", None)
+        token = _sign_session_token(profile, "officer")
+        return AuthLoginResponse(status="success", role="officer", user=profile, token=token)
+
+    # Citizen — register (or return as new) a lightweight citizen profile.
+    if not payload.full_name or not payload.home_state:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Full name and home state are required to register as a citizen.",
+        )
+    profile = {
+        "id": _next_citizen_id(),
+        "name": payload.full_name.strip(),
+        "state": payload.home_state.strip().title(),
+        "role": "citizen",
+    }
+    citizen_registry.append(profile)
+    token = _sign_session_token(profile, "citizen")
+    return AuthLoginResponse(status="success", role="citizen", user=profile, token=token)
 
 
 @router.post("/predict-risk", response_model=RiskPredictionOutput)

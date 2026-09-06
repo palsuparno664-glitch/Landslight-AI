@@ -1,6 +1,6 @@
 """
 LANDSIGHT AI - Backend Server Entrypoint
-FastAPI server for Early Warning & Landslide Risk Monitoring System in NER India (SIH26001)
+FastAPI server for the Early Warning & Landslide Risk Monitoring System for NER India
 """
 
 from fastapi import FastAPI
@@ -13,7 +13,7 @@ from backend.api.routes import router
 
 app = FastAPI(
     title="LANDSIGHT AI - Landslide Risk Inference & Warning Engine",
-    description="Backend API for Smart India Hackathon 2026 (SIH26001) - Disaster Management for NER India",
+    description="Backend API for the LANDSIGHT AI early warning and landslide risk monitoring system for NER India",
     version="1.0.0"
 )
 
@@ -39,8 +39,6 @@ def root():
     return {
         "project": "LANDSIGHT AI",
         "description": "AI-Based Early Warning and Landslide Risk Monitoring System in NER",
-        "sih_problem_id": "SIH26001",
-        "team": "Storm Chasers",
         "status": "Online & Healthy",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "documentation": "/docs",

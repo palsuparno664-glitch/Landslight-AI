@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { soundManager } from '@/lib/sound';
 import { offlineStorage } from '@/lib/db';
+import { useAuth } from '@/lib/auth-context';
 
 /* Concentric-contours survey logo mark (inline SVG, cartographic north tick) */
 function LogoContours({ className = 'w-10 h-10' }: { className?: string }) {
@@ -37,6 +38,7 @@ export default function Navbar() {
   const [pendingCount, setPendingCount] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [activeAlertIndex, setActiveAlertIndex] = useState(0);
+  const { profile, role, logout } = useAuth();
 
   const activeAlerts = [
     { text: 'CRITICAL RED ALERT: Mangan - Chungthang Highway (Risk: 86.4/100) — Mandatory Evacuation Zone 4', tag: 'SIKKIM', level: 'critical' as const },
@@ -189,6 +191,25 @@ export default function Navbar() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
+          {/* Verified field role chip */}
+          {role && profile && (
+            <>
+              <div className="hidden md:flex items-center gap-1.5 rounded-md bg-ink-800/60 border border-ink-700 px-3 py-1.5 text-[11px] font-mono">
+                <span className={role === 'officer' ? 'text-clay font-bold' : 'text-teal font-bold'}>
+                  {role === 'officer' ? 'Field Officer' : 'Citizen'}
+                </span>
+                <span className="text-ink-600">|</span>
+                <span className="text-paper-dim max-w-[140px] truncate">{profile.name}</span>
+                {profile.department && <span className="text-ink-600 hidden xl:inline">· {profile.department}</span>}
+              </div>
+              <button
+                onClick={logout}
+                className="px-3 py-1.5 rounded-md bg-ink-800/60 border border-ink-700 text-paper-dim font-mono text-[11px] font-bold uppercase tracking-wider hover:text-paper hover:border-ink-600 transition-colors"
+              >
+                Sign out
+              </button>
+            </>
+          )}
           {/* Test Siren Button */}
           <button
             onClick={handleSirenClick}

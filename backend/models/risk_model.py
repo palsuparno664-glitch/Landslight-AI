@@ -1,6 +1,5 @@
 """
 LANDSIGHT AI - Landslide Risk Prediction Engine
-SIH 2026 Problem Statement: SIH26001
 Model: Calibrated XGBoost & Ensemble Regression + Classifier for NER India
 """
 
@@ -134,7 +133,7 @@ class LandslideRiskEngine:
 
         final_score = round(min(100.0, max(0.0, raw_weighted_score * compound_multiplier)), 1)
 
-        # Category mapping as per SIH spec
+        # Category mapping for risk levels
         if final_score < 25.0:
             level = "Low"
             color = "#10b981"

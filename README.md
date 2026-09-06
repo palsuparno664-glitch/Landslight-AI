@@ -1,10 +1,7 @@
 # 🏔️ LANDSIGHT AI — Landslide Early Warning & Risk Monitoring System (NER India)
 
-> **Smart India Hackathon (SIH 2026)**  
-> **Problem Statement ID:** `SIH26001`  
-> **Theme:** Disaster Management  
-> **Team:** Storm Chasers  
-> **Coverage:** 8 North Eastern States (Sikkim, Assam, Meghalaya, Arunachal Pradesh, Nagaland, Manipur, Mizoram, Tripura)
+> 🛰️ **An independent build.** Conceived, engineered, and shipped by me, on my own initiative: every layer from the DEM contours to the dispatch console was designed with a single goal — helping the hills talk before they move.  
+> **Coverage:** the 8 North Eastern States (Sikkim, Assam, Meghalaya, Arunachal Pradesh, Nagaland, Manipur, Mizoram, Tripura)
 
 ---
 

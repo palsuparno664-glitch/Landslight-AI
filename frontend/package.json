@@ -1,7 +1,7 @@
 {
   "name": "landsight-ai",
   "version": "1.0.0",
-  "description": "AI-Based Early Warning and Landslide Risk Monitoring System for North Eastern Region of India (SIH26001)",
+  "description": "AI-Based Early Warning and Landslide Risk Monitoring System for North Eastern Region of India",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",

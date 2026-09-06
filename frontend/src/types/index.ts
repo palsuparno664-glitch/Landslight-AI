@@ -174,3 +174,55 @@ export type AskResponse = {
   suggested_questions: string[];
   timestamp: string;
 };
+
+// ---------------------------------------------------------------------------
+// Auth — citizen / field-officer verification (login page + hard gate)
+// ---------------------------------------------------------------------------
+
+export type AuthRole = 'citizen' | 'officer';
+
+export type AuthUser = {
+  id: string;
+  name: string;
+  state: string;
+  district?: string | null;
+  department?: string | null;
+};
+
+/** Shape carried inside the signed `ls_session` token (base64url(payload).hmac_hex). */
+export type AuthSession = {
+  role: AuthRole;
+  sub: string;
+  name: string;
+  state: string;
+  district?: string | null;
+  department?: string | null;
+  iat: number;
+  exp: number;
+};
+
+export type CitizenLoginInput = {
+  role: 'citizen';
+  full_name: string;
+  home_state: string;
+};
+
+export type OfficerLoginInput = {
+  role: 'officer';
+  officer_id: string;
+  district: string;
+  security_code: string;
+};
+
+export type LoginInput = CitizenLoginInput | OfficerLoginInput;
+
+export type LoginResponse = {
+  status: string;
+  role: AuthRole;
+  user: AuthUser;
+};
+
+export type AuthMeResponse = {
+  role: AuthRole;
+  user: AuthUser;
+};
